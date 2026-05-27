@@ -30,6 +30,11 @@ resource "google_container_node_pool" "primary_nodes" {
   version = data.google_container_engine_versions.gke_version.release_channel_default_version["STABLE"]
   node_count = var.gke_num_nodes
 
+  upgrade_settings {
+    max_surge       = 0
+    max_unavailable = 1
+  }
+
   node_config {
     oauth_scopes = [
       "https://www.googleapis.com/auth/logging.write",
@@ -47,4 +52,67 @@ resource "google_container_node_pool" "primary_nodes" {
       disable-legacy-endpoints = "true"
     }
   }
+}
+
+data "google_client_config" "default" {}
+
+resource "helm_release" "argocd" {
+  name             = "argocd"
+  repository       = "https://argoproj.github.io/argo-helm"
+  chart            = "argo-cd"
+  version          = "9.5.15"
+  namespace        = "argocd"
+  create_namespace = true
+
+  set = [
+    {
+      name  = "dex.enabled"
+      value = "false"
+    },
+    {
+      name  = "notifications.enabled"
+      value = "false"
+    },
+    {
+      name  = "applicationSet.enabled"
+      value = "false"
+    },
+    {
+      name  = "server.extraArgs[0]"
+      value = "--insecure"
+    }
+  ]
+
+  depends_on = [google_container_node_pool.primary_nodes]
+}
+
+resource "kubectl_manifest" "argocd_app" {
+  yaml_body = yamlencode({
+    apiVersion = "argoproj.io/v1alpha1"
+    kind       = "Application"
+    metadata = {
+      name      = "root-app"
+      namespace = "argocd"
+    }
+    spec = {
+      project = "default"
+      source = {
+        repoURL        = "https://github.com/Bernedotcom2312/theforge-cd.git"
+        targetRevision = "main"
+        path           = "apps"
+      }
+      destination = {
+        server    = "https://kubernetes.default.svc"
+        namespace = "default"
+      }
+      syncPolicy = {
+        automated = {
+          prune    = true
+          selfHeal = true
+        }
+      }
+    }
+  })
+
+  depends_on = [helm_release.argocd]
 }
