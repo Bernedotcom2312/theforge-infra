@@ -1,39 +1,47 @@
 # theforge-infra
 
-Infrastructure Terraform pour provisionner un cluster **GKE (Google Kubernetes Engine)** sur GCP.
+Terraform infrastructure to provision a **GKE (Google Kubernetes Engine)** cluster on GCP.
+
+## Prerequisites
+
+* Scoop (Windows) or Homebrew (MacOS) to install Terraform
+* Python and pip to install pre-commit hooks and Checkov
 
 ## Architecture
 
 ```
-VPC dédié ──▶ Subnet (10.10.0.0/24) ──▶ Cluster GKE (node pool managé)
+Dedicated VPC ──▶ Subnet (10.10.0.0/24) ──▶ GKE Cluster (managed node pool)
 ```
 
-Architecture simple, single-region, adaptée à un POC.
+Simple, single-region architecture, suited for a POC.
 
-## Structure du repo
+## Repository structure
 
-| Fichier | Rôle |
+| File | Role |
 |---|---|
-| `vpc.tf` | Déclare le **VPC** et un **subnet** pour isoler le cluster, ainsi que les variables `project_id` / `region` et le provider Google. |
-| `gke.tf` | Crée le **cluster GKE** (version 1.27.x, default node pool supprimé) et un **node pool séparé** de 2 nœuds `n1-standard-1`. |
-| `versions.tf` | Fixe le provider Google à la version `7.33.0` et Terraform `>= 0.14`. |
-| `outputs.tf` | Expose la région, le project ID, le nom et l'endpoint du cluster. |
-| `terraform.tfvars` | Variables d'entrée (`project_id` à remplacer, région `us-central1`). |
-| `kubernetes-dashboard-admin.rbac.yaml` | Manifest RBAC Kubernetes pour un accès admin au dashboard (à appliquer post-déploiement). |
+| `vpc.tf` | Declares the **VPC** and a **subnet** to isolate the cluster, along with the `project_id` / `region` variables and the Google provider. |
+| `gke.tf` | Creates the **GKE cluster** (version 1.27.x, default node pool removed) and a **separate node pool** of 2 `n1-standard-1` nodes. |
+| `versions.tf` | Pins the Google provider to version `7.33.0` and Terraform `>= 0.14`. |
+| `outputs.tf` | Exposes the region, project ID, cluster name, and endpoint. |
+| `terraform.tfvars` | Input variables (`project_id` to be replaced, region `us-central1`). |
+| `kubernetes-dashboard-admin.rbac.yaml` | Kubernetes RBAC manifest for admin access to the dashboard (to be applied post-deployment). |
 
-## Utilisation
+## Usage
 
-1. Renseigner le `project_id` dans `terraform.tfvars`.
-2. Lancer le déploiement :
+1. Install dependencies:
    ```bash
-   terraform init
-   terraform apply
+   make install
    ```
-3. Configurer `kubectl` :
+2. Initialize the repo and pre-commit hooks:
    ```bash
-   gcloud container clusters get-credentials $(terraform output -raw kubernetes_cluster_name) --region $(terraform output -raw region)
+   make init
    ```
-4. (Optionnel) Appliquer le RBAC pour le dashboard :
+3. Validate the Terraform configuration:
    ```bash
-   kubectl apply -f kubernetes-dashboard-admin.rbac.yaml
+   make validate
+   ```
+4. Run the deployment:
+   ```bash
+   make plan
+   make apply
    ```
