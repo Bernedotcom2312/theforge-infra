@@ -23,14 +23,8 @@ plan: init
 apply: init
 	terraform apply -var-file=$(TFVARS_FILE)
 
-apply-auto: init
-	terraform apply -var-file=$(TFVARS_FILE) -auto-approve
-
 destroy: init
 	terraform destroy -var-file=$(TFVARS_FILE)
-
-destroy-auto: init
-	terraform destroy -var-file=$(TFVARS_FILE) -auto-approve
 
 output:
 	terraform output
