@@ -1,5 +1,5 @@
 # Copyright (c) HashiCorp, Inc.
 # SPDX-License-Identifier: MPL-2.0
 
-project_id = "REPLACE_ME"
-region     = "us-central1"
+project_id = "deft-accord-496812-k9"
+region     = "europe-west1"

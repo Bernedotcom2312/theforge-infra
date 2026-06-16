@@ -1,22 +1,15 @@
 variable "project_id" {
   description = "project id"
+  type        = string
 }
 
 variable "region" {
   description = "region"
-}
-
-variable "gke_username" {
-  default     = ""
-  description = "gke username"
-}
-
-variable "gke_password" {
-  default     = ""
-  description = "gke password"
+  type        = string
 }
 
 variable "gke_num_nodes" {
   default     = 2
   description = "number of gke nodes"
+  type        = number
 }
