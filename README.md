@@ -1,4 +1,4 @@
-# theforge-infra
+# The Forge project infrastructure
 
 Terraform infrastructure to provision a **GKE (Google Kubernetes Engine)** cluster on GCP.
 
@@ -23,8 +23,7 @@ Simple, single-region architecture, suited for a POC.
 | `gke.tf` | Creates the **GKE cluster** (version 1.27.x, default node pool removed) and a **separate node pool** of 2 `n1-standard-1` nodes. |
 | `versions.tf` | Pins the Google provider to version `7.33.0` and Terraform `>= 0.14`. |
 | `outputs.tf` | Exposes the region, project ID, cluster name, and endpoint. |
-| `terraform.tfvars` | Input variables (`project_id` to be replaced, region `us-central1`). |
-| `kubernetes-dashboard-admin.rbac.yaml` | Kubernetes RBAC manifest for admin access to the dashboard (to be applied post-deployment). |
+| `terraform.tfvars` | Input variables (`project_id` to be replaced). |
 
 ## Usage
 
@@ -40,7 +39,7 @@ Simple, single-region architecture, suited for a POC.
    ```bash
    make validate
    ```
-4. Run the deployment:
+4. Apply configuration:
    ```bash
    make plan
    make apply
