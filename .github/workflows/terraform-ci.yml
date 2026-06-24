@@ -17,26 +17,26 @@ permissions:
 jobs:
   terraform-ci:
     name: Validate & Plan
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     defaults:
       run:
         shell: bash
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4.2.2
+        uses: actions/checkout@v7.0.0
 
       - name: Authenticate to GCP
         id: auth
-        uses: google-github-actions/auth@v2.1.10
+        uses: google-github-actions/auth@v3.0.0
         with:
           workload_identity_provider: ${{ vars.GCP_WIF_PROVIDER }}
           service_account: ${{ vars.GCP_SA_EMAIL }}
 
       - name: Setup Terraform
-        uses: hashicorp/setup-terraform@v3.1.2
+        uses: hashicorp/setup-terraform@v4.0.1
         with:
-          terraform_version: "1.15.0"
+          terraform_version: "1.15.6"
           terraform_wrapper: true
 
       - name: Terraform fmt
@@ -56,9 +56,9 @@ jobs:
         run: terraform validate -no-color
 
       - name: Setup TFLint
-        uses: terraform-linters/setup-tflint@v4.1.0
+        uses: terraform-linters/setup-tflint@v6.2.2
         with:
-          tflint_version: v0.55.0
+          tflint_version: v0.63.1
 
       - name: TFLint init
         run: tflint --init
@@ -70,12 +70,13 @@ jobs:
 
       - name: Checkov scan
         id: checkov
-        uses: bridgecrewio/checkov-action@v12.2874.0
+        uses: bridgecrewio/checkov-action@v12.1347.0
         with:
           directory: .
           framework: terraform
           output_format: cli
-          soft_fail: true
+          soft_fail: false
+        continue-on-error: true
 
       - name: Terraform plan
         id: plan
@@ -110,6 +111,7 @@ jobs:
               `| Format (\`terraform fmt\`) | ${statusIcon('${{ steps.fmt.outcome }}')} ${{ steps.fmt.outcome }} |`,
               `| Init | ${statusIcon('${{ steps.init.outcome }}')} ${{ steps.init.outcome }} |`,
               `| Validate | ${statusIcon('${{ steps.validate.outcome }}')} ${{ steps.validate.outcome }} |`,
+              `| Checkov (security) | ${statusIcon('${{ steps.checkov.outcome }}')} ${{ steps.checkov.outcome }} |`,
               `| Plan | ${statusIcon('${{ steps.plan.outcome }}')} ${{ steps.plan.outcome }} |`,
               '',
               '<details><summary>Show plan output</summary>',
@@ -152,8 +154,9 @@ jobs:
               });
             }
 
-      - name: Check plan exit code
-        if: steps.plan.outputs.exitcode != '0'
+      - name: Fail if checkov or plan failed
+        if: steps.checkov.outcome == 'failure' || steps.plan.outputs.exitcode != '0'
         run: |
-          echo "Terraform plan failed. See comment on PR for details."
+          [[ '${{ steps.checkov.outcome }}' == 'failure' ]] && echo "Checkov security scan failed."
+          [[ '${{ steps.plan.outputs.exitcode }}' != '0' ]] && echo "Terraform plan failed."
           exit 1
