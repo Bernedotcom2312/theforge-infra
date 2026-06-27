@@ -6,6 +6,12 @@ inputs:
     description: Enable the Terraform wrapper for output capture
     required: false
     default: 'false'
+  gcp_wif_provider:
+    description: GCP Workload Identity Federation provider
+    required: true
+  gcp_sa_email:
+    description: GCP service account email
+    required: true
 
 runs:
   using: composite
@@ -16,8 +22,8 @@ runs:
     - name: Authenticate to GCP
       uses: google-github-actions/auth@v3.0.0
       with:
-        workload_identity_provider: ${{ vars.GCP_WIF_PROVIDER }}
-        service_account: ${{ vars.GCP_SA_EMAIL }}
+        workload_identity_provider: ${{ inputs.gcp_wif_provider }}
+        service_account: ${{ inputs.gcp_sa_email }}
 
     - name: Setup Terraform
       uses: hashicorp/setup-terraform@v4.0.1
