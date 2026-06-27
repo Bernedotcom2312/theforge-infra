@@ -23,10 +23,15 @@ jobs:
         shell: bash
 
     steps:
+      - name: Checkout
+        uses: actions/checkout@v7.0.0
+
       - name: Setup
         uses: ./.github/actions/terraform-setup
         with:
           terraform_wrapper: 'true'
+          gcp_wif_provider: ${{ vars.GCP_WIF_PROVIDER }}
+          gcp_sa_email: ${{ vars.GCP_SA_EMAIL }}
 
       - name: Terraform fmt
         id: fmt
@@ -78,6 +83,14 @@ jobs:
             -input=false 2>&1 | tee plan-output.txt
           echo "exitcode=${PIPESTATUS[0]}" >> "$GITHUB_OUTPUT"
         continue-on-error: true
+
+      - name: Upload plan artifact
+        if: steps.plan.outcome == 'success'
+        uses: actions/upload-artifact@v7.0.1
+        with:
+          name: plan-${{ github.sha }}
+          path: plan.tfplan
+          retention-days: 1
 
       - name: Post plan as PR comment
         uses: actions/github-script@v7.0.1
