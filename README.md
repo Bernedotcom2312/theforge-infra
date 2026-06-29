@@ -21,7 +21,7 @@ Simple, single-region architecture, suited for a POC.
 |---|---|
 | `vpc.tf` | Declares the **VPC** and a **subnet** to isolate the cluster, along with the `project_id` / `region` variables and the Google provider. |
 | `gke.tf` | Creates the **GKE cluster** (version 1.27.x, default node pool removed) and a **separate node pool** of 2 `n1-standard-1` nodes. |
-| `versions.tf` | Pins the Google provider to version `7.33.0` and Terraform `>= 0.14`. |
+| `versions.tf` | Pins the Google provider to version `7.33.0` and Terraform `>= 1.15.6`. |
 | `outputs.tf` | Exposes the region, project ID, cluster name, and endpoint. |
 | `terraform.tfvars` | Input variables (`project_id` to be replaced). |
 
